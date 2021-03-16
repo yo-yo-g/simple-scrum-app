@@ -6,10 +6,10 @@ exports.createTask = (req, res) => {
         return;
     }
 
-    const isValid = isCreateDataValid(req);
+    const resultMessage = validDataInput(req);
 
-    if (isValid !== 'Invalid') {
-        res.status(400).send(isValid);
+    if (resultMessage !== 'Valid.') {
+        res.status(400).send(resultMessage);
         return;
     }
 
@@ -36,10 +36,10 @@ exports.getTasks = (req, res) => {
 
 exports.updateTask = (req, res) => {
     if (req.query.id) {
-        const isValid = isUpdateDataValid(req);
+        const resultMessage = validDataUpdate(req);
 
-        if (isValid !== 'Invalid') {
-            res.status(400).send(isValid);
+        if (resultMessage !== 'Valid.') {
+            res.status(400).send(resultMessage);
             return;
         }
 
@@ -49,24 +49,13 @@ exports.updateTask = (req, res) => {
             } else {
 
                 let message = 'Cannot update';
+                const body = req.body;
 
-                if (req.body.name) {
+                if (body.name) {
                     message += ' name';
                 }
-
-                if (req.body.description) {
-                    task.description = req.body.description;
-                }
-
-                if (req.body.startDate) {
-                    task.startDate = req.body.startDate;
-                }
-
-                if (req.body.endDate) {
-                    task.endDate = req.body.endDate;
-                }
-                
-                if (req.body.status) {
+               
+                if (body.status) {
                     if (message === 'Cannot update') {
                         message += ' status';
                     } else {
@@ -74,14 +63,17 @@ exports.updateTask = (req, res) => {
                     }
                 }
 
-                if (req.body.tag) {
-                    task.tag = req.body.tag;
-                }
-
                 if (message !== 'Cannot update') {
                     message += '.';
                     res.status(400).send(message);
                     return;
+                }
+
+                if (body.description || body.startDate || body.endDate || body.tag) {
+                    task.description = body.description;
+                    task.startDate = body.startDate;
+                    task.endDate = body.endDate;
+                    task.tag = body.tag; 
                 }
 
                 task.save((err) => {
@@ -112,108 +104,66 @@ exports.deleteTask = (req, res) => {
     }
 };
 
-function isCreateDataValid (req) {
-    let message = 'Invalid';
+function validDataInput (req) {
+    let message = 'Valid';
     const name = req.body.name;
     const description = req.body.description;
     const startDate = req.body.startDate;
     const endDate = req.body.endDate;
     const status = req.body.status;
     const tag = req.body.tag;
+    let bodyElements = new Map();
+    let invalidBodyElements = [];
+    
+    bodyElements.set('name', name);
+    bodyElements.set('description', description);
+    bodyElements.set('startDate', startDate);
+    bodyElements.set('endDate', endDate);
+    bodyElements.set('status', status);
+    bodyElements.set('tag', tag);
 
-    if (!name || typeof name !== 'string') {
-        message += ' name';
-    }
-
-    if (typeof description !== 'string') { //description could be empty field - not required
-        if (message === 'Invalid') {
-            message += ' description';
-        } else {
-            message += ', description';
+    for (let [key, value] of bodyElements) {
+        
+        if (!value || typeof value !== 'string' || value === "null") {
+            invalidBodyElements.push(key);
+            message = 'Invalid ';
         }
-    }
 
-    if (!startDate || typeof startDate !== 'string') {
-        if (message === 'Invalid') {
-            message += ' startDate';
-        } else {
-            message += ', startDate';
-        }
     }
-
-    if (!endDate || typeof endDate !== 'string') {
-        if (message === 'Invalid') {
-            message += ' endDate';
-        } else {
-            message += ', endDate';
-        }
-    }
-
-    if (!status || typeof status !== 'string') {
-        if (message === 'Invalid') {
-            message += ' status';
-        } else {
-            message += ', status';
-        }
-    }
-
-    if (!tag || typeof tag !== 'string') {
-        if (message === 'Invalid') {
-            message += ' tag';
-        } else {
-            message += ', tag';
-        }
-    }
-
-    if (message !== 'Invalid') {
-        message += '.';
-
-        return message;
-    }
- 
+    
+    message += invalidBodyElements.join(', ');
+    message += '.';
+    
     return message;
+
 };
 
-function isUpdateDataValid (req) {
-    let message = 'Invalid';
+function validDataUpdate (req) {
+    let message = 'Valid';
     const description = req.body.description;
     const startDate = req.body.startDate;
     const endDate = req.body.endDate;
     const tag = req.body.tag;
+    let bodyElements = new Map();
+    let invalidBodyElements = [];
+    
+    bodyElements.set('description', description);
+    bodyElements.set('startDate', startDate);
+    bodyElements.set('endDate', endDate);
+    bodyElements.set('tag', tag);
 
-    if (description && typeof description !== 'string') {
-        message += ' description';
-    }
-
-    if (startDate && typeof startDate !== 'string') {
-        if (message === 'Invalid') {
-            message += ' startDate';
-        } else {
-            message += ', startDate';
+    for (let [key, value] of bodyElements) {
+        
+        if (value && typeof value !== 'string' || value === "null") {
+            invalidBodyElements.push(key);
+            message = 'Invalid ';
         }
-    }
 
-    if (endDate && typeof endDate !== 'string') {
-        if (message === 'Invalid') {
-            message += ' endDate';
-        } else {
-            message += ', endDate';
-        }
     }
-
-    if (tag && typeof tag !== 'string') {
-        if (message === 'Invalid') {
-            message += ' tag';
-        } else {
-            message += ', tag';
-        }
-    }
-
-    if (message !== 'Invalid') {
-        message += '.';
-
-        return message;
-    }
- 
+    
+    message += invalidBodyElements.join(', ');
+    message += '.';
+    
     return message;
+
 };

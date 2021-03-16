@@ -4,10 +4,10 @@ exports.createUser = async function (req, res) {
     try {
         const user = new User(req.body);
 
-        const isValid = isCreateDataValid(req, res);
+        const resultMessage = validDataInput(req, res);
 
-        if (isValid !== 'Invalid') {
-            res.status(400).send(isValid);
+        if (resultMessage !== 'Valid.') {
+            res.status(400).send(resultMessage);
             return;
         }
 
@@ -64,37 +64,29 @@ exports.deleteUser = function (req, res) {
     }
 };
 
-function isCreateDataValid (req) {
-    let message = 'Invalid';
+function validDataInput (req) {
+    let message = 'Valid';
     const name = req.body.name;
     const email = req.body.email;
     const password = req.body.password;
+    let bodyElements = new Map();
+    let invalidBodyElements = [];
+    
+    bodyElements.set('name', name);
+    bodyElements.set('email', email);
+    bodyElements.set('password', password);
 
-    if (!name || typeof name !== 'string') {
-        message += ' name';
-    }
+    for (let [key, value] of bodyElements) {
 
-    if (!email || typeof email !== 'string') {
-        if (message === 'Invalid') {
-            message += ' email';
-        } else {
-            message += ', email';
+        if (!value || typeof value !== 'string' || value === "null") {
+            invalidBodyElements.push(key);
+            message = 'Invalid ';
         }
-    }
 
-    if (!password || typeof password !== 'string') {
-        if (message === 'Invalid') {
-            message += ' password';
-        } else {
-            message += ', password';
-        }
     }
+    
+    message += invalidBodyElements.join(', ');
+    message += '.';
 
-    if (message !== 'Invalid') {
-        message += '.';
-
-        return message;
-    }
- 
     return message;
 };

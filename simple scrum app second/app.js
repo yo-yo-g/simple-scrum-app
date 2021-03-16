@@ -10,7 +10,7 @@ mongoose.connect(url, { useNewUrlParser: true })
 
 const db = mongoose.connection;
 db.once('open', () => {
-  console.log('Database connected:', url + '. Welcome to Gaia!')
+  console.log('Database connected:', url + '. Welcome to Mars!')
 });
 db.on('error', (err) => {
   console.error('connection error:', err)

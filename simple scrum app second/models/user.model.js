@@ -17,7 +17,7 @@ const userSchema = new Schema ({
         lowercase: true,
         validate: (value) => {
             if (!validator.isEmail(value)) {
-                throw new Error({ error: 'Invalid Email address' });
+                throw new Error({ error: 'Invalid Email address!' });
             }
         }
     },
@@ -43,7 +43,7 @@ userSchema.statics.findByCredentials = async function (email, password) {
     const user = await User.findOne({ email });
 
     if (!user) {
-        throw new Error('Invalid login credentials!');
+        throw new Error('Invalid login credentials!'); 
     }
 
     const isPasswordMatch = await bcrypt.compare(password, user.password);
